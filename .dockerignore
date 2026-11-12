@@ -1,0 +1,12 @@
+.venv
+.env
+data
+sessions
+tests
+docs
+**/__pycache__
+.pytest_cache
+*.md
+!README.md
+desktop
+downloads

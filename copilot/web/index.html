@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Meeting Copilot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="/static/app.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='13' fill='%2331d6a8'/><circle cx='16' cy='16' r='5' fill='%230b0f14'/></svg>">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true"></span>
+      <span class="brand-name">Meeting Copilot</span>
+      <span class="badge">beta</span>
+    </div>
+
+    <div class="status" id="status">
+      <span class="pill" id="pill-rec" hidden><span class="dot rec"></span><span id="timer">00:00</span></span>
+      <span class="pill" title="Собеседники (звук встречи)">
+        <span class="dot" id="dot-them"></span>Они
+        <span class="meter"><span id="lvl-them"></span></span>
+      </span>
+      <span class="pill" title="Ваш микрофон">
+        <span class="dot" id="dot-me"></span>Я
+        <span class="meter"><span id="lvl-me"></span></span>
+      </span>
+      <span class="pill" id="pill-brain"><span class="dot" id="dot-brain"></span><span id="brain-label">Claude</span></span>
+    </div>
+
+    <div class="actions">
+      <select id="lang-top" class="compact" title="Язык речи на встрече (⌘⇧L в приложении)" aria-label="Язык речи"></select>
+      <label class="switch" id="kn-switch" hidden title="Подтягивать в ответы ваши прошлые чаты. База личная: другие пользователи её не видят.">
+        <input type="checkbox" id="kn">
+        <span class="track"><span class="knob"></span></span>
+        <span id="kn-label">Мои чаты</span>
+      </label>
+      <label class="switch" title="Auto: отвечать самому, когда к вам обращаются (⌥⇧A)">
+        <input type="checkbox" id="auto">
+        <span class="track"><span class="knob"></span></span>
+        <span>Auto</span>
+      </label>
+      <button class="btn ghost" id="btn-summary" disabled title="Итоги встречи">Итоги</button>
+      <button class="btn ghost" id="btn-pip" disabled title="Окно ответов поверх всех окон (⌥⇧P)">Поверх окон</button>
+      <button class="btn danger" id="btn-stop" hidden>Стоп</button>
+      <a class="btn ghost" id="btn-app" href="/download" target="_blank" rel="noopener"
+         title="Приложение для Mac и Windows: текст поверх звонка и глобальные клавиши">Приложение</a>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="left">
+      <div class="stage" id="stage">
+        <video id="preview" autoplay muted playsinline></video>
+
+        <div class="setup" id="setup">
+          <h1>Начать встречу</h1>
+          <p class="muted">Поделитесь вкладкой или экраном с созвоном — копилот будет слушать собеседников
+            и подсказывать ответы.</p>
+
+          <div class="field">
+            <span class="label">Звук собеседников</span>
+            <div class="seg" role="radiogroup">
+              <label><input type="radio" name="them-src" value="share" checked><span>Из демонстрации экрана</span></label>
+              <label><input type="radio" name="them-src" value="device"><span>Устройство (BlackHole)</span></label>
+            </div>
+            <p class="hint" id="hint-share">Выберите <b>вкладку</b> с Meet / Zoom / Teams и включите
+              «Поделиться звуком вкладки». На Windows подойдёт и весь экран со звуком системы.</p>
+            <p class="hint" id="hint-device" hidden>Для десктопного Zoom/Teams на Mac: звук идёт через
+              Multi-Output Device с BlackHole 2ch. Экран можно показать любой — звук берётся с устройства.</p>
+            <select id="them-device" hidden></select>
+          </div>
+
+          <div class="field">
+            <span class="label">Мой микрофон</span>
+            <select id="me-device"><option value="">По умолчанию</option></select>
+            <label class="check"><input type="checkbox" id="me-on" checked> Распознавать мою речь</label>
+          </div>
+
+          <div class="field row2">
+            <label class="sub"><span class="label">Язык встречи</span><select id="lang"></select></label>
+            <label class="sub"><span class="label">Язык ответа</span><select id="answer-lang"></select></label>
+          </div>
+          <p class="hint">Встреча почти вся на русском — выберите «Русский»: распознаёт точнее. Имена и термины
+            (Greenplum, dm_visits, Вардан) добавьте в <button type="button" class="linkbtn inline" id="open-vocab">слова для распознавания</button>.</p>
+
+          <div class="field">
+            <span class="label">Материалы к встрече</span>
+            <div class="drop slim" id="setup-drop" role="button" tabindex="0" aria-label="Загрузить файлы или папку к этой встрече">
+              <input type="file" id="setup-files" multiple hidden>
+              <input type="file" id="setup-folder" webkitdirectory multiple hidden>
+              <span><b>Файлы, папки или zip</b> — только к этой встрече</span>
+              <small>чаты Telegram / claude.ai / ChatGPT, PDF, Word, Excel, PowerPoint, SQL, код · перетащите сюда
+                или <button type="button" class="pick" data-pick="folder">выберите папку</button></small>
+            </div>
+            <div class="setup-files" id="setup-filelist"></div>
+          </div>
+
+          <button class="btn primary big" id="btn-start">Поделиться экраном и начать</button>
+          <button class="linkbtn" id="open-prep" type="button">＋ Подготовка к встрече: обо мне, бриф, файлы и чаты</button>
+          <p class="error" id="setup-error" hidden></p>
+        </div>
+
+        <div class="stage-note" id="stage-note" hidden></div>
+      </div>
+
+      <div class="splitter" id="splitter" role="separator" aria-orientation="horizontal" aria-label="Граница между экраном и ответом" tabindex="0"></div>
+
+      <section class="answer" id="answer-panel">
+        <div class="answer-head">
+          <span class="answer-title">Ответ</span>
+          <div class="engines" id="engines" role="radiogroup" aria-label="Движок ответов"></div>
+          <span class="answer-meta" id="answer-meta"></span>
+          <div class="tools">
+            <button type="button" class="tool" id="font-down" title="Мельче" aria-label="Уменьшить шрифт ответа">A−</button>
+            <button type="button" class="tool" id="font-up" title="Крупнее" aria-label="Увеличить шрифт ответа">A+</button>
+            <button type="button" class="tool" id="copy-answer" title="Скопировать ответ" aria-label="Скопировать ответ">Копировать</button>
+            <button type="button" class="tool" id="toggle-stage" title="Скрыть экран и отдать место ответу" aria-pressed="false">Скрыть экран</button>
+          </div>
+        </div>
+        <div class="answer-body" id="answer-body" aria-live="polite">
+          <p class="placeholder">Собеседник задал вопрос — нажмите <kbd>⌥ Space</kbd> или «Ответить».
+            С включённым <b>Auto</b> ответ появится сам.</p>
+        </div>
+        <form class="ask" id="ask">
+          <input id="ask-input" autocomplete="off" placeholder="Свой вопрос Claude… (Enter)">
+          <button class="btn ghost" id="btn-more" type="button" disabled title="Переспросить сильной моделью, подробнее (⌥⇧Space)">
+            Подробнее
+          </button>
+          <button class="btn primary" id="btn-answer" type="button" disabled title="Ответить на последний вопрос (⌥Space)">
+            Ответить <kbd>⌥Space</kbd>
+          </button>
+        </form>
+      </section>
+    </section>
+
+    <aside class="right">
+      <div class="tabs" role="tablist">
+        <button class="tab active" data-tab="transcript">Транскрипт</button>
+        <button class="tab" data-tab="history">Ответы <span class="count" id="history-count">0</span></button>
+        <button class="tab" data-tab="prep">Подготовка</button>
+      </div>
+      <div class="panel" id="tab-transcript">
+        <div class="transcript" id="transcript">
+          <p class="placeholder">Здесь появится живой транскрипт встречи.</p>
+        </div>
+      </div>
+      <div class="panel" id="tab-prep" hidden>
+        <div class="prep">
+          <div class="prep-field">
+            <div class="prep-head"><span class="label">Обо мне</span><span class="saved" id="profile-state">сохраняется для всех встреч</span></div>
+            <textarea id="profile" rows="5" placeholder="Роль и опыт, текущие проекты, цифры, которыми горжусь, как я обычно отвечаю…"></textarea>
+          </div>
+          <div class="prep-field">
+            <div class="prep-head"><span class="label">К этой встрече</span><span class="saved" id="brief-state">только эта встреча</span></div>
+            <textarea id="brief" rows="4" placeholder="С кем созвон, повестка, моя цель, чего не обещать…"></textarea>
+          </div>
+          <div class="prep-field">
+            <div class="prep-head"><span class="label">Слова для распознавания</span><span class="saved" id="vocab-state">для всех встреч</span></div>
+            <textarea id="vocab" rows="3" spellcheck="false"
+                      placeholder="Имена, названия, термины — через запятую или с новой строки: Вардан, Козловский, Greenplum, dm_visits, ретеншен, SLA"></textarea>
+            <small class="hint">Распознавание будет писать их правильно. Только редкие слова — имена, названия, термины, не обычные слова.
+              В режиме языка «Авто» учитываются первые 10, в «Русский» и других — до 50 (вместе с названиями из файлов, брифа и «Обо мне»).</small>
+          </div>
+          <div class="prep-field">
+            <span class="label">Файлы и чаты</span>
+            <div class="drop" id="drop" role="button" tabindex="0" aria-label="Загрузить файлы или папку">
+              <input type="file" id="files" multiple hidden>
+              <input type="file" id="folder" webkitdirectory multiple hidden>
+              <b>Перетащите файлы или папки</b> или нажмите, чтобы выбрать файлы
+              <small>чаты (zip Telegram, claude.ai, ChatGPT), PDF, Word, Excel, PowerPoint, SQL, код, CSV ·
+                <button type="button" class="pick" data-pick="folder">выбрать папку</button></small>
+            </div>
+            <div class="seg small" role="radiogroup">
+              <label><input type="radio" name="up-scope" value="session" checked><span>Только к этой встрече</span></label>
+              <label><input type="radio" name="up-scope" value="saved"><span>Сохранить в мою базу</span></label>
+            </div>
+            <p class="hint">Всё личное: видно только вам. Файлы «к этой встрече» живут до конца встречи;
+              «моя база» — сохраняется и подключается тумблером «Мои чаты».</p>
+          </div>
+          <div class="doclist" id="doclist"></div>
+        </div>
+      </div>
+      <div class="panel" id="tab-history" hidden>
+        <div class="history" id="history"><p class="placeholder">Пока нет ответов.</p></div>
+      </div>
+    </aside>
+  </main>
+
+  <div class="modal" id="summary-modal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <span>Итоги встречи</span>
+        <div>
+          <button class="btn ghost" id="summary-copy">Копировать</button>
+          <button class="btn ghost" id="summary-close">Закрыть</button>
+        </div>
+      </div>
+      <div class="modal-body md" id="summary-body"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="token-modal" hidden>
+    <form class="modal-card small" id="token-form">
+      <div class="modal-head"><span>Доступ</span></div>
+      <div class="modal-body">
+        <p class="muted">Откройте ссылку, которую печатает <code>python -m copilot serve</code>, или вставьте токен из <code>.env</code> (APP_TOKEN).</p>
+        <input id="token-input" placeholder="APP_TOKEN" autocomplete="off">
+        <button class="btn primary">Войти</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <script type="module" src="/static/app.js"></script>
+</body>
+</html>

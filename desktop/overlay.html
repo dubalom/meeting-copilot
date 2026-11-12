@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'">
+  <title>Copilot overlay</title>
+  <style>
+    :root { --fs: 28px; --bg-a: .86; --accent: #44ddb2; --them: #7fb8ff; }
+    html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; }
+    body {
+      font-family: "Onest", -apple-system, "Segoe UI", Roboto, sans-serif; color: #f2f5fa;
+      display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 8px;
+      box-sizing: border-box;
+    }
+    body.pos-top { justify-content: flex-start; }
+    body.pos-bottom { justify-content: flex-end; }
+    .card {
+      max-width: 100%; max-height: 100%; box-sizing: border-box; overflow: hidden;
+      padding: 16px 24px 18px; border-radius: 18px;
+      background: rgba(13, 19, 33, var(--bg-a));
+      border: 1px solid rgba(68, 221, 178, .28);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, .45);
+      opacity: 0; transform: translateY(6px); transition: opacity .18s ease, transform .18s ease;
+    }
+    .card.show { opacity: 1; transform: none; }
+    .meta { display: flex; gap: 10px; align-items: baseline; font-size: 13px; color: #9aa7bd; margin-bottom: 6px; }
+    .meta .engine { color: var(--accent); font-weight: 600; }
+    .q { font-size: 14px; color: #b9c6db; border-left: 2px solid var(--them); padding-left: 8px; margin-bottom: 8px;
+         white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .a { font-size: var(--fs); line-height: 1.35; text-shadow: 0 1px 2px rgba(0, 0, 0, .6); }
+    .a p { margin: .25em 0; }
+    .a > p:first-child { font-weight: 650; font-size: 1.12em; }
+    .a ul, .a ol { margin: .2em 0; padding-left: 1.2em; font-size: .82em; }
+    .a pre { font-size: .55em; background: rgba(0, 0, 0, .35); padding: 8px 10px; border-radius: 10px; white-space: pre-wrap; }
+    .a code { font-family: "JetBrains Mono", Menlo, Consolas, monospace; }
+    .a .tbd { color: #f5b84b; }
+    .dots { display: inline-flex; gap: 8px; padding: 8px 0; }
+    .dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); opacity: .3; animation: d 1.1s infinite; }
+    .dots i:nth-child(2) { animation-delay: .15s; } .dots i:nth-child(3) { animation-delay: .3s; }
+    @keyframes d { 40% { opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { .card { transition: none; } .dots i { animation: none; opacity: .8; } }
+  </style>
+</head>
+<body>
+  <div class="card" id="card">
+    <div class="meta"><span class="engine" id="engine"></span><span id="hint"></span></div>
+    <div class="q" id="q" hidden></div>
+    <div class="a" id="a"></div>
+  </div>
+  <script type="module" src="overlay.js"></script>
+</body>
+</html>

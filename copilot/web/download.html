@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Скачать Meeting Copilot</title>
+  <meta name="description" content="Приложение для Mac и Windows: подсказки Claude поверх звонка, глобальные клавиши, звук встречи без настроек.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="/static/download.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='13' fill='%2331d6a8'/><circle cx='16' cy='16' r='5' fill='%230b0f14'/></svg>">
+</head>
+<body>
+  <header class="bar">
+    <a class="brand" href="/"><span class="logo" aria-hidden="true"></span>Meeting Copilot</a>
+    <a class="link" href="/">Открыть копилот</a>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="pitch">
+        <h1>Подсказка появляется прямо поверх звонка</h1>
+        <p class="lead">Приложение для Mac и Windows. Слушает встречу, а ответ Claude показывает посередине экрана —
+          поверх видео, в любом окне и в полноэкранном Zoom. Кликать можно сквозь текст.</p>
+
+        <div class="get" id="get">
+          <a class="btn primary big" id="primary" href="#versions" aria-describedby="primary-meta">Скачать</a>
+          <span class="meta" id="primary-meta"></span>
+        </div>
+        <p class="empty" id="empty" hidden>Сборки ещё не загружены на этот сервер. Их выкладывает <code>deploy/push.sh</code>
+          из папки <code>desktop/dist</code>.</p>
+
+        <ul class="versions" id="versions" aria-label="Все версии"></ul>
+      </div>
+
+      <figure class="call" aria-label="Как это выглядит: ответ поверх видеозвонка">
+        <div class="tiles" aria-hidden="true">
+          <div class="tile t1"><span>АК</span><em>Анна, тимлид</em></div>
+          <div class="tile t2"><span>МР</span><em>Максим</em></div>
+          <div class="tile t3"><span>Вы</span></div>
+        </div>
+        <div class="plate" aria-hidden="true">
+          <div class="plate-top">Быстро · Haiku <span>⌘⇧H — скрыть</span></div>
+          <div class="plate-q">Чем OLTP отличается от OLAP?</div>
+          <p class="plate-cue" id="cue">OLTP — много коротких транзакций, OLAP — тяжёлая аналитика по истории.</p>
+          <ul class="plate-list">
+            <li>OLTP: заказы, платежи, нормализованные таблицы</li>
+            <li>OLAP: витрины, агрегаты, колоночное хранение</li>
+          </ul>
+        </div>
+        <figcaption>Так выглядит ответ во время встречи. Положение, размер и прозрачность — в меню приложения.</figcaption>
+      </figure>
+    </section>
+
+    <section class="setup" aria-labelledby="setup-h">
+      <h2 id="setup-h">Как подключить</h2>
+      <ol class="steps">
+        <li>
+          <h3>Установите</h3>
+          <p data-os="mac">Откройте .dmg и перетащите приложение в «Программы». Сборка пока без подписи Apple, поэтому
+            в первый раз: правый клик по приложению → «Открыть» → «Открыть».</p>
+          <p data-os="win">Запустите установщик. Сборка пока без подписи, Windows покажет предупреждение:
+            «Подробнее» → «Выполнить в любом случае».</p>
+        </li>
+        <li>
+          <h3>Разрешите звук встречи</h3>
+          <p data-os="mac">System Settings → Privacy &amp; Security → «Запись экрана и системного звука» и «Микрофон» →
+            включите Meeting Copilot и перезапустите его. BlackHole не нужен — звук Zoom, Teams и браузера
+            приложение берёт само.</p>
+          <p data-os="win">Ничего настраивать не нужно: звук встречи приложение берёт из системы, микрофон — по запросу Windows.</p>
+        </li>
+        <li>
+          <h3>Вставьте свою ссылку</h3>
+          <p>При первом запуске приложение попросит ссылку на копилот — ту же, по которой вы открываете сайт.</p>
+          <div class="mylink" id="mylink" hidden>
+            <code id="mylink-text"></code>
+            <button class="btn" id="mylink-copy" type="button">Скопировать ссылку</button>
+          </div>
+          <p class="note" id="mylink-note" hidden>В ссылке ваш личный пароль — не пересылайте её.</p>
+        </li>
+      </ol>
+    </section>
+
+    <section class="keys" aria-labelledby="keys-h">
+      <h2 id="keys-h">Клавиши работают в любом приложении</h2>
+      <table>
+        <tbody>
+          <tr><td>Ответить на последний вопрос</td><td><kbd data-k="Space"></kbd></td></tr>
+          <tr><td>Подробнее, сильной моделью</td><td><kbd data-k="Enter"></kbd></td></tr>
+          <tr><td>Показать или скрыть текст</td><td><kbd data-k="H"></kbd></td></tr>
+          <tr><td>Auto — отвечать самому</td><td><kbd data-k="A"></kbd></td></tr>
+          <tr><td>Сменить язык речи</td><td><kbd data-k="L"></kbd></td></tr>
+        </tbody>
+      </table>
+      <p class="note">Делитесь в звонке окном или вкладкой, а не всем экраном — иначе собеседники увидят подсказку.</p>
+    </section>
+  </main>
+
+  <script src="/static/download.js"></script>
+</body>
+</html>

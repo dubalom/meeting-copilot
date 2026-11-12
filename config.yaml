@@ -1,0 +1,61 @@
+# Meeting Copilot configuration (see CLAUDE.md §5.9).
+# Secrets (API keys, APP_TOKEN) live in .env, not here.
+
+server:
+  host: 127.0.0.1
+  port: 8765
+  cors_origins: ["http://localhost:5173", "http://127.0.0.1:5173"]
+  session_grace_seconds: 300        # keep a session alive after its last client disconnects
+
+audio:                              # local capture (CLI / desktop mode)
+  them_device: "auto"               # auto = BlackHole 2ch (macOS) / WASAPI loopback (Windows) / .monitor (Linux)
+  me_device: "auto"                 # auto = default microphone
+  transcribe_me: true               # false = don't capture/transcribe the mic (saves STT cost)
+  frame_ms: 40
+
+stt:
+  provider: deepgram                # deepgram | whisper
+  model: nova-3
+  language: multi                   # multi (ru/en code-switching) | ru | en
+  keyterms_from_glossary: true      # boost terms from context/glossary.md
+  max_keyterms: 50
+  endpointing_ms: 100               # Deepgram recommends 100 for code-switching (multi); also see phrase gap in session.py
+  utterance_end_ms: 1000
+  phrase_gap_seconds: 0.9           # a pause longer than this always starts a new line
+  keepalive_seconds: 8
+  reconnect_max_seconds: 8
+  buffer_seconds: 30                # audio kept in memory while reconnecting
+
+brain:
+  provider: anthropic               # anthropic | agent_sdk (personal mode only)
+  answer_model: claude-haiku-5-5     # live answers: ~1.6 s to first token (Sonnet ~2.5–3.8 s, measured)
+  summary_model: claude-sonnet-5-5  # meeting notes: quality over speed (thinking on)
+  summary_max_tokens: 6000
+  filter_model: claude-haiku-5-5
+  max_tokens: 300                    # live answers run with thinking disabled
+  temperature: 0.2                  # currently unused (not accepted by the current Anthropic SDK)
+  window_seconds: 90
+
+trigger:
+  auto_default: false
+  debounce_seconds: 1.5
+  min_words_auto: 4
+
+hotkeys:
+  answer: "<alt>+<space>"
+  toggle_auto: "<alt>+<shift>+a"
+  toggle_hide: "<alt>+<shift>+h"
+
+ui:
+  opacity: 0.92
+  font_size: 15
+  width: 420
+  height: 260
+
+store:
+  db_url: "sqlite:///data/copilot.db"
+  recordings_dir: data/recordings
+
+paths:
+  context_dir: context
+  sessions_dir: data/sessions

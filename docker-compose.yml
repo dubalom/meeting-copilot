@@ -1,0 +1,35 @@
+# Deploy: docker compose up -d --build   (on the server, in the project folder)
+# Needs in .env: DOMAIN, APP_TOKEN, DEEPGRAM_API_KEY, ANTHROPIC_API_KEY
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      COPILOT_PUBLIC_URL: https://${DOMAIN}
+    volumes:
+      - ./data:/app/data            # your private chats, profile — stays on the server disk
+      - ./context:/app/context      # context/*.md (edit on the server or re-upload)
+      - ./config.yaml:/app/config.yaml:ro
+      - ./downloads:/app/downloads:ro  # desktop installers for /download
+    expose:
+      - "8000"
+
+  caddy:                            # HTTPS (Let's Encrypt) — screen sharing in browsers requires https
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
+volumes:
+  caddy_data:
+  caddy_config:

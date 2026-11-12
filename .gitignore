@@ -1,0 +1,29 @@
+# secrets
+.env
+
+# meeting notes (personal)
+sessions/
+data/
+!sessions/.gitkeep
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# editors / os
+.DS_Store
+.vscode/
+.idea/
+
+# desktop builds
+downloads
+desktop/node_modules/
+desktop/dist/
+desktop/build/
+desktop/md.js
+.qa/

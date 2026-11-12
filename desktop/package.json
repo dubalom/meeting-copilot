@@ -1,0 +1,75 @@
+{
+  "name": "meeting-copilot-desktop",
+  "productName": "Meeting Copilot",
+  "version": "0.1.0",
+  "description": "Meeting Copilot desktop: the web app plus an always-on-top answer overlay, tray and global hotkeys",
+  "main": "main.js",
+  "author": "Den",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "sync-web": "node -e \"require('fs').copyFileSync('../copilot/web/md.js','md.js')\"",
+    "start": "npm run sync-web && (test -f build/bin/syscap || npm run build-native) && electron .",
+    "dist:mac": "npm run sync-web && npm run build-native && electron-builder --mac dmg --arm64 --x64",
+    "dist:win": "npm run sync-web && electron-builder --win nsis zip --x64",
+    "build-native": "mkdir -p build/bin && swiftc -O -swift-version 5 -target arm64-apple-macos13.0 -o build/bin/syscap-arm64 native/syscap.swift && swiftc -O -swift-version 5 -target x86_64-apple-macos13.0 -o build/bin/syscap-x64 native/syscap.swift && lipo -create -output build/bin/syscap build/bin/syscap-arm64 build/bin/syscap-x64"
+  },
+  "build": {
+    "appId": "app.saydarai.copilot",
+    "productName": "Meeting Copilot",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "overlay-preload.js",
+      "settings-preload.js",
+      "overlay.html",
+      "overlay.js",
+      "settings.html",
+      "settings.js",
+      "md.js",
+      "assets/**",
+      "build/icon.png"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "build/icon.png",
+      "identity": "-",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "Копилот распознаёт вашу речь на встрече.",
+        "NSAudioCaptureUsageDescription": "Копилот слушает звук встречи, чтобы подсказывать ответы.",
+        "NSScreenCaptureUsageDescription": "Копилот слушает звук встречи (системный звук) и показывает превью экрана."
+      },
+      "extraResources": [
+        {
+          "from": "build/bin/syscap",
+          "to": "syscap"
+        }
+      ],
+      "minimumSystemVersion": "13.0",
+      "hardenedRuntime": false
+    },
+    "dmg": {
+      "title": "Meeting Copilot",
+      "artifactName": "MeetingCopilot-${version}-${arch}.${ext}"
+    },
+    "win": {
+      "icon": "build/icon.png",
+      "signAndEditExecutable": false,
+      "artifactName": "MeetingCopilot-${version}-win.${ext}"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "artifactName": "MeetingCopilot-Setup-${version}.${ext}"
+    },
+    "publish": null
+  },
+  "devDependencies": {
+    "electron": "^44.9.0",
+    "electron-builder": "^26.15.3"
+  }
+}
